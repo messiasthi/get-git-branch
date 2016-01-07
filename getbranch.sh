@@ -7,66 +7,58 @@ GREEN="\033[0;32m"
 BLUE="\033[0;34m"
 RESET="\033[0m"
 
-MASTER=$PURPLE
-DEVELOP=$GREEN
-BRANCH=$BLUE
+MASTER="!"
+DEVELOP="@"
+ADDED="+"
+DELETED="-"
+MODIFICATIONS="*"
+UNTRACKED="?"
+NO_DIFFERENCES="|"
 
-MODIFICATIONS=$RED
-UNTRACKED=$YELLOW
-
-# return is the element to set color, 
-# 1 = is modifications
-# 2 = is only untracked files
-# 3 = is not differences 
+# Change the symbol to show in command line
 function getChanges () {
 
 	changes=$(git status 2>/dev/null)
 	changes=$(echo $changes)
+	added="new file:"
+	deleted="deleted:"
 	modifieds="modified:"
-	added="modified:"
-	deleted="modified:"
 	untracked="Untracked files:"
-	if [[ $changes =~ $modifieds ]]; then
-		_branchType=1
-	elif [[ $changes =~ $added ]]; then
-		_branchType=1
+
+
+	if [[ $changes =~ $added ]]; then
+		_changeType=$ADDED
 	elif [[ $changes =~ $deleted ]]; then
-		_branchType=1
+		_changeType=$DELETED
+	elif [[ $changes =~ $modifieds ]]; then
+		_changeType=$MODIFICATIONS
 	elif [[ $changes =~ $untracked ]]; then
-		_branchType=2
+		_changeType=$UNTRACKED
 	else 
-		_branchType=3
+		_changeType=$NO_DIFFERENCES
 	fi
 }
 
 function getBranch () {
 	# Get branch informations if the repository  has .git
 	branch=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/')
-	# Clear the new line and other unused informations in line 
 	branch=$(echo $branch)
 	# Define the show in command line in case of repository not has .git
 	___getbranch=''
 
-	if [[ $branch == "master" ]]; then
-		color=$MASTER
-	elif [[ $branch == "develop" ]]; then
-		color=$DEVELOP
-	else
-		color=$BRANCH
-	fi
+
 	getChanges
 
-	# Overwrite the colors in case of modifications in files or files untracked in project
-	if [[ $_branchType == 1 ]]; then
-		branchColor=$MODIFICATIONS
-	elif [[ $_branchType == 2 ]]; then
-		branchColor=$UNTRACKED
-	else
-		branchColor=$color
+	if [[ $_changeType == $NO_DIFFERENCES ]]; then
+		if [[ $branch == "master" ]]; then
+			_changeType=$MASTER
+		elif [[ $branch == "develop" ]]; then
+			_changeType=$DEVELOP
+		fi
 	fi
 	
 	if [[ -n $branch ]]; then
-		___getbranch=" [ $branch ]"
+		___getbranch=" [ $branch ] ( $_changeType )"
 	fi
 
 	echo "$___getbranch" 2>/dev/null
