@@ -5,7 +5,7 @@ YELLOW="\033[0;33m"
 PURPLE="\033[0;35m"
 GREEN="\033[0;32m"
 BLUE="\033[0;34m"
-RESET="\033[0m"
+RESET="\[\033[00m\]"
 
 MASTER="!"
 DEVELOP="@"
@@ -64,4 +64,14 @@ function getBranch () {
 	echo "$___getbranch" 2>/dev/null
 }
 
-export PS1="\w\$(getBranch) \$ "
+# Get the PS1 length
+ps1_=$((${#PS1}-2))
+
+# Get the end character of PS1
+end_ps1=${PS1:ps1_:1}
+
+# Get the start string of PS1
+start_ps1=${PS1:0:ps1_}
+
+# Export PS1
+export PS1="$start_ps1$RED\$(getBranch)$RESET$end_ps1 "
