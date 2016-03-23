@@ -58,7 +58,7 @@ function getBranch () {
 	fi
 	
 	if [[ -n $branch ]]; then
-		___getbranch=" [ $branch ] ( $_changeType )"
+		___getbranch=" [ $branch ] ( $_changeType ) "
 	fi
 
 	echo "$___getbranch" 2>/dev/null
@@ -74,4 +74,4 @@ end_ps1=${PS1:ps1_:1}
 start_ps1=${PS1:0:ps1_}
 
 # Export PS1
-export PS1="$start_ps1$RED\$(getBranch)$RESET$end_ps1 "
+export PS1="$start_ps1\$(getBranch)$end_ps1 "
