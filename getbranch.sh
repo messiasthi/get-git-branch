@@ -1,34 +1,40 @@
 # Is simple application to get branch to print in command line
 # to simple identification to humans
-
 MASTER="!"
 DEVELOP="@"
 ADDED="+"
 DELETED="-"
 MODIFICATIONS="*"
 UNTRACKED="?"
-NO_DIFFERENCES="|"
+NO_DIFFERENCES="="
 
 # Change the symbol to show in command line
 function getChanges () {
-
 	changes=$(git status 2>/dev/null)
 	changes=$(echo $changes)
 	added="new file:"
 	deleted="deleted:"
 	modifieds="modified:"
 	untracked="Untracked files:"
-
+	_changeType=""
 
 	if [[ $changes =~ $added ]]; then
-		_changeType=$ADDED
-	elif [[ $changes =~ $deleted ]]; then
-		_changeType=$DELETED
-	elif [[ $changes =~ $modifieds ]]; then
-		_changeType=$MODIFICATIONS
-	elif [[ $changes =~ $untracked ]]; then
-		_changeType=$UNTRACKED
-	else
+		_changeType="$_changeType$ADDED"
+	fi
+
+	if [[ $changes =~ $deleted ]]; then
+		_changeType="$_changeType$DELETED"
+	fi
+
+	if [[ $changes =~ $modifieds ]]; then
+		_changeType="$_changeType$MODIFICATIONS"
+	fi
+
+	if [[ $changes =~ $untracked ]]; then
+		_changeType="$_changeType$UNTRACKED"
+	fi
+
+	if [[ -z $_changeType ]]; then
 		_changeType=$NO_DIFFERENCES
 	fi
 }
@@ -39,18 +45,17 @@ function printChanges () {
 	echo "$_changeType" 2> /dev/null
 }
 
+# Get branch informations if the repository  has .git
 function getBranch () {
-	# Get branch informations if the repository  has .git
 	branch=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/')
 	branch=$(echo $branch)
 	echo "$branch" 2>/dev/null
 }
 
+# Define the show in command line in case of repository not has .git
 function printBranch () {
-	# Define the show in command line in case of repository not has .git
-	___getbranch=''
-
 	getChanges
+	___getbranch=' '
 	branch=$(getBranch)
 
 	if [[ $_changeType == $NO_DIFFERENCES ]]; then
@@ -62,23 +67,33 @@ function printBranch () {
 	fi
 
 	if [[ -n $branch ]]; then
-		___getbranch=" [ $branch ] ( $_changeType ) "
+		___getbranch=" [$branch]($_changeType) "
 	fi
 
 	echo "$___getbranch" 2>/dev/null
 }
 
-function exportToPS1 () {
-	# Get the PS1 length
-	ps1_=$((${#PS1}-2))
+# Export PS1, WARNING: Just put the \$(printBranch) in this mode on your profile
+export PS1="\w\$(printBranch)$ "
 
-	# Get the end character of PS1
-	end_ps1=${PS1:ps1_:1}
+function gpull () {
+  if [[ $1 == "-all" ]]; then
+    gpullAll
+  else
+    git fetch
+    git pull origin $(getBranch)
+  fi
+}
 
-	# Get the start string of PS1
-	start_ps1=${PS1:0:ps1_}
+function gpush () {
+	git push origin $(getBranch)
+}
 
-	# return value to export PS1
-	$new_ps1="$start_ps1$(printBranch)$end_ps1 "
-	echo "$new_ps1" 2> /dev/null
+function gpullAll () {
+  for dir in *; do
+   if [[ -d $dir ]]; then
+     echo "git pull in $dir"
+     cd $dir; gpull; cd ..
+   fi
+  done
 }
