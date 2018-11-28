@@ -67,7 +67,7 @@ function printBranch () {
 	fi
 
 	if [[ -n $branch ]]; then
-		___getbranch=" [$branch]($_changeType) "
+		___getbranch=" [$branch] ($_changeType) "
 	fi
 
 	echo "$___getbranch" 2>/dev/null
