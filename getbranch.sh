@@ -42,12 +42,17 @@ function getChanges () {
 # Return change type to tests
 function printChanges () {
 	getChanges
-	echo "$_changeType" 2> /dev/null
+	echo "$_changeType" 2>/dev/null
+}
+
+# Get get remote information
+function getRemote () {
+	echo $(git remote 2>/dev/null)
 }
 
 # Get branch informations if the repository  has .git
 function getBranch () {
-	branch=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/')
+	branch=$(git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/')
 	branch=$(echo $branch)
 	echo "$branch" 2>/dev/null
 }
@@ -81,12 +86,12 @@ function gpull () {
     gpullAll
   else
     git fetch
-    git pull origin $(getBranch)
+    git pull $(getRemote) $(getBranch)
   fi
 }
 
 function gpush () {
-	git push origin $(getBranch)
+	git push $(getRemote) $(getBranch)
 }
 
 function gpullAll () {
